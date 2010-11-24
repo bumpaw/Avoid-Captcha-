@@ -1,0 +1,9 @@
+<?php
+// <!-- phpDesigner :: Timestamp [11/23/2010 11:21:09 PM] -->
+function avoid_captcha_js_alter(&$javascript) {
+  //Add javascript required
+
+ $javascript  = drupal_add_js('sites/all/modules/avoidcaptcha/cap_sub/jquery.js', 'file');
+
+}
+

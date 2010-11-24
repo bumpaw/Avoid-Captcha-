@@ -1,6 +1,10 @@
-// <!-- phpDesigner :: Timestamp [11/23/2010 5:12:24 PM] -->
-name = AvoidCaptcha
+// <!-- phpDesigner :: Timestamp [11/23/2010 8:23:05 PM] -->
+; Comment this file with a semi-colon
+name = Avoid captcha
 description = "An attempt to avoid using captcha"
-core = 7.0
-package = AvoidCaptcha
+core = 7.x
+; Don't use version if ever contributed to drupal
+version = 7.0
+; package = Only for big mods 
 files[] = avoid_captcha.module
+configure = admin/config/system/avoid-captcha
