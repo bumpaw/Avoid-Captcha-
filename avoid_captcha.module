@@ -1,9 +1,19 @@
 <?php
-// <!-- phpDesigner :: Timestamp [11/23/2010 11:21:09 PM] -->
-function avoid_captcha_js_alter(&$javascript) {
-  //Add javascript required
-
- $javascript  = drupal_add_js('sites/all/modules/avoidcaptcha/cap_sub/jquery.js', 'file');
-
+// <!-- phpDesigner :: Timestamp [11/26/2010 11:54:53 PM] -->
+/**
+ * Using hook_form_alter to target forms that would get a captcha
+ * under other conditions.
+ */
+function avoid_captcha_form_alter(&$form, &$form_state, $form_id)
+{
+    // Add needed javascript that runs when the page loads
+    if ($form_id == 'contact_site_form' || $form_id == 'user_register_form') {
+        $selector_id = str_replace('_', '-', $form_id);
+        $js_add = 'jQuery(document).ready( function(){jQuery(".warning").remove();
+jQuery.get("sites/all/modules/avoidcaptcha/cap_sub/token.php",function(txt){
+jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\'+txt+\'" />\');
+});
+});';
+        $javascript = drupal_add_js($js_add, 'inline');
+    }
 }
-
