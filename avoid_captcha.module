@@ -1,5 +1,5 @@
 <?php
-// <!-- phpDesigner :: Timestamp [1/20/2011 11:50:54 PM] -->
+// <!-- phpDesigner :: Timestamp [1/21/2011 11:29:12 PM] -->
 /**
  * @file
  * Qualifies users so they don't need to be shown a captcha
@@ -13,7 +13,7 @@ function avoid_captcha_form_alter(&$form, &$form_state, $form_id)
     if ($form_id == 'contact_site_form' || $form_id == 'user_register_form') {
         $selector_id = str_replace('_', '-', $form_id);
         $js_add = 'jQuery(document).ready( function(){jQuery(".warning").remove();
-jQuery.get("http://www.dev7.hvav.com/sites/all/modules/avoidcaptcha/cap_sub/token.php",function(txt){
+jQuery.get("http://www.dev7.hvav.com/sites/all/modules/custom/avoidcaptcha/cap_sub/token.php",function(txt){
 jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\'+txt+\'" />\');
 });
 });';
@@ -29,13 +29,39 @@ jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\
 
 // So submit will call my function
     $form['#submit'][] = 'avoid_captcha_form_submit';
- }
- }
     
+// Give it a function for validation
+    $form['#validate'][] = 'avoid_captcha_form_validate';
+ }
+ }
+   
 // trying to add code that runs first on submit of form
 function avoid_captcha_form_submit($form, &$form_state){
-    var_dump($form);
-    //$form_state['redirect'] = 'node/2';
+       // Added 02/01/209 instead of captcha to stop spam
+$proceed = false;
+$seconds = 60*10;//10 minutes
+
+if(isset($_POST['ts']) && isset($_COOKIE['token']) && $_COOKIE['token'] == md5('africa byby'.$_POST['ts'])) $proceed = true;
+
+if(!$proceed) {
+echo 'Form processing halted for suspicious activity';
+exit;
+}
+
+if(((int)$_POST['ts'] + $seconds) < mktime()) {
+echo 'Too much time elapsed';
+exit;
+}
+variable_set('avoid_captcha_test_result', 0);
+// Endof captcha substitute
+    $form_state['redirect'] = 'node/2';
+	
+}
+
+
+
+// Our special validation function
+function avoid_captcha_form_validate($form, &$form_state){
 	
 }
 
