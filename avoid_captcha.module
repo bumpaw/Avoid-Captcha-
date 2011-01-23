@@ -1,5 +1,5 @@
 <?php
-// <!-- phpDesigner :: Timestamp [1/21/2011 11:29:12 PM] -->
+// <!-- phpDesigner :: Timestamp [1/22/2011 9:27:32 PM] -->
 /**
  * @file
  * Qualifies users so they don't need to be shown a captcha
@@ -18,80 +18,59 @@ jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\
 });
 });';
         $javascript = drupal_add_js($js_add, 'inline');
-    
-// Add warning when javascript is not detected
-    $form['nojavascript'] = array(
-    '#prefix' => '<p class="warning"><span style="color:red;">',
-    '#markup' => t('You must have javascript enabled to use this form.'),
-    '#suffix' => '</span></p>',
-    '#weight' => -5,
-    );
 
-// So submit will call my function
-    $form['#submit'][] = 'avoid_captcha_form_submit';
-    
-// Give it a function for validation
-    $form['#validate'][] = 'avoid_captcha_form_validate';
- }
- }
-   
-// trying to add code that runs first on submit of form
-function avoid_captcha_form_submit($form, &$form_state){
-       // Added 02/01/209 instead of captcha to stop spam
-$proceed = false;
-$seconds = 60*10;//10 minutes
+        // Add warning when javascript is not detected
+        $form['nojavascript'] = array('#prefix' =>
+            '<p class="warning"><span style="color:red;">', '#markup' => t('You must have javascript enabled to use this form.'),
+            '#suffix' => '</span></p>', '#weight' => -5, );
 
-if(isset($_POST['ts']) && isset($_COOKIE['token']) && $_COOKIE['token'] == md5('africa byby'.$_POST['ts'])) $proceed = true;
+        // Give it a function for validation
+        $form['#validate'][] = 'avoid_captcha_form_validate';
 
-if(!$proceed) {
-echo 'Form processing halted for suspicious activity';
-exit;
+    }
 }
 
-if(((int)$_POST['ts'] + $seconds) < mktime()) {
-echo 'Too much time elapsed';
-exit;
-}
-variable_set('avoid_captcha_test_result', 0);
-// Endof captcha substitute
-    $form_state['redirect'] = 'node/2';
-	
-}
+// trying to add code that validates on submit prior to proccessing.
+function avoid_captcha_form_validate($form, &$form_state)
+{
 
+    $proceed = false;
+    $seconds = 60 * 10; //10 minutes
 
+    if (isset($_POST['ts']) && isset($_COOKIE['token']) && $_COOKIE['token'] == md5
+        ('africa byby' . $_POST['ts'])) {
+        $proceed = true;
+    }
 
-// Our special validation function
-function avoid_captcha_form_validate($form, &$form_state){
-	
+    if (!$proceed) {
+        form_set_error('', t('Form processing halted for suspicious activity'));
+    } else
+        if (((int)$_POST['ts'] + $seconds) < mktime()) {
+            form_set_error('', t('Too much time elapsed'));
+        }
 }
 
 // For admin below
 /**
  * Implement hook_menu().
  */
-function avoid_captcha_menu() {
-  $items = array();
+function avoid_captcha_menu()
+{
+    $items = array();
 
-  $items['admin/config/system/avoid-captcha'] = array(
-    'title' => 'Avoid Captcha Admin',
-    'description' => 'Determine which forms should be protected with Avoid Captcha.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('avoid_captcha_admin_settings'),
-    'access arguments' => array('administer avoid captcha'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'avoid_captcha.admin.inc',
-  );
-  return $items;
+    $items['admin/config/system/avoid-captcha'] = array('title' =>
+        'Avoid Captcha Admin', 'description' =>
+        'Determine which forms should be protected with Avoid Captcha.', 'page callback' =>
+        'drupal_get_form', 'page arguments' => array('avoid_captcha_admin_settings'),
+        'access arguments' => array('administer avoid captcha'), 'type' =>
+        MENU_NORMAL_ITEM, 'file' => 'avoid_captcha.admin.inc', );
+    return $items;
 }
 /**
  * Implement hook_permission
  */
- function avoid_captcha_permission() {
-  return array(
-    'administer avoid captcha' => array(
-      'title' => t('Administer Avoid Captcha'), 
-      'description' => t('Perform administration tasks for Avoid Captcha.')
-    ),
-  );
+function avoid_captcha_permission()
+{
+    return array('administer avoid captcha' => array('title' => t('Administer Avoid Captcha'),
+        'description' => t('Perform administration tasks for Avoid Captcha.')), );
 }
-
