@@ -1,4 +1,4 @@
-// <!-- phpDesigner :: Timestamp [1/4/2011 11:30:28 AM] -->
+// <!-- phpDesigner :: Timestamp [1/25/2011 10:51:30 AM] -->
 ; Comment this file with a semi-colon
 name = Avoid captcha
 description = "An attempt to avoid using captcha"
@@ -6,4 +6,4 @@ description = "An attempt to avoid using captcha"
 core = 7.x
 files[] = avoid_captcha.module
 files[] = avoid_captcha.admin.inc
-configure = admin/config/system/avoid-captcha
+configure = admin/config/system

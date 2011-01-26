@@ -1,5 +1,5 @@
 <?php
-// <!-- phpDesigner :: Timestamp [1/22/2011 9:27:32 PM] -->
+// <!-- phpDesigner :: Timestamp [1/26/2011 3:50:22 PM] -->
 /**
  * @file
  * Qualifies users so they don't need to be shown a captcha
@@ -9,11 +9,20 @@
  */
 function avoid_captcha_form_alter(&$form, &$form_state, $form_id)
 {
+    global $base_url;
+    // $base_url seems to be available even if not in settings.php
+    // so the following 3 lines are not needed.
+    //if (!isset($base_url) || strstr($base_url, 'www') == FALSE) {
+    //$base_url = variable_get('avoid_captcha_base_url', 'base URL');
+    //}
     // Add needed javascript that runs when the page loads
-    if ($form_id == 'contact_site_form' || $form_id == 'user_register_form') {
+
+    $in_settings = variable_get('avoid_captcha_form_ids', array());
+    if (in_array($form_id, $in_settings)) {
         $selector_id = str_replace('_', '-', $form_id);
         $js_add = 'jQuery(document).ready( function(){jQuery(".warning").remove();
-jQuery.get("http://www.dev7.hvav.com/sites/all/modules/custom/avoidcaptcha/cap_sub/token.php",function(txt){
+jQuery.get("' . $base_url .
+            '/sites/all/modules/custom/avoidcaptcha/cap_sub/token.php",function(txt){
 jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\'+txt+\'" />\');
 });
 });';
@@ -56,15 +65,21 @@ function avoid_captcha_form_validate($form, &$form_state)
  */
 function avoid_captcha_menu()
 {
-    $items = array();
 
-    $items['admin/config/system/avoid-captcha'] = array('title' =>
-        'Avoid Captcha Admin', 'description' =>
-        'Determine which forms should be protected with Avoid Captcha.', 'page callback' =>
-        'drupal_get_form', 'page arguments' => array('avoid_captcha_admin_settings'),
+    $items['admin/config/system/avoid-captcha'] = array('title' => 'Avoid Captcha',
+        'description' => 'Manage which forms should be protected with Avoid Captcha.',
+        'page callback' => 'drupal_get_form', 'page arguments' => array('avoid_captcha_settings'),
         'access arguments' => array('administer avoid captcha'), 'type' =>
         MENU_NORMAL_ITEM, 'file' => 'avoid_captcha.admin.inc', );
     return $items;
+}
+/**
+ * For admin submit function
+ */
+function avoid_captcha_admin_submit($form, &$form_state)
+{
+    variable_set('avoid_captcha_form_ids', array_filter($form_state['values']['protect_forms']));
+
 }
 /**
  * Implement hook_permission
