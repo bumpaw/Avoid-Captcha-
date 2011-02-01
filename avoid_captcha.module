@@ -1,5 +1,5 @@
 <?php
-// <!-- phpDesigner :: Timestamp [1/26/2011 3:50:22 PM] -->
+// <!-- phpDesigner :: Timestamp [2/1/2011 5:24:13 PM] -->
 /**
  * @file
  * Qualifies users so they don't need to be shown a captcha
@@ -8,21 +8,16 @@
  * can submit the form. Bots should have neither.
  */
 function avoid_captcha_form_alter(&$form, &$form_state, $form_id)
-{
-    global $base_url;
-    // $base_url seems to be available even if not in settings.php
-    // so the following 3 lines are not needed.
-    //if (!isset($base_url) || strstr($base_url, 'www') == FALSE) {
-    //$base_url = variable_get('avoid_captcha_base_url', 'base URL');
-    //}
-    // Add needed javascript that runs when the page loads
+{    
+    global $secret_salt;
+    $secret_salt = variable_get('avoid_captcha_secret_salt', 'secret salt');
 
+    // Add needed javascript that runs when the page loads
     $in_settings = variable_get('avoid_captcha_form_ids', array());
     if (in_array($form_id, $in_settings)) {
         $selector_id = str_replace('_', '-', $form_id);
         $js_add = 'jQuery(document).ready( function(){jQuery(".warning").remove();
-jQuery.get("' . $base_url .
-            '/sites/all/modules/custom/avoidcaptcha/cap_sub/token.php",function(txt){
+jQuery.get("/sites/all/modules/custom/avoidcaptcha/cap_sub/token.php",function(txt){
 jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\'+txt+\'" />\');
 });
 });';
@@ -39,15 +34,19 @@ jQuery("#' . $selector_id . '").append(\'<input type="hidden" name="ts" value="\
     }
 }
 
-// trying to add code that validates on submit prior to proccessing.
+// validation should eliminate a bot with no cookies, javascript or
+// who took too long possibly submitting the form repeatedly.
 function avoid_captcha_form_validate($form, &$form_state)
 {
-
+    global $secret_salt;
+    
     $proceed = false;
-    $seconds = 60 * 10; //10 minutes
-
+    // Time allowed is set in admin.
+    $mins_allowed = variable_get('avoid_captcha_time_out', 10);
+    $seconds = (60 * $mins_allowed);
+    
     if (isset($_POST['ts']) && isset($_COOKIE['token']) && $_COOKIE['token'] == md5
-        ('africa byby' . $_POST['ts'])) {
+        ($secret_salt . $_POST['ts'])) {
         $proceed = true;
     }
 
@@ -66,13 +65,14 @@ function avoid_captcha_form_validate($form, &$form_state)
 function avoid_captcha_menu()
 {
 
-    $items['admin/config/system/avoid-captcha'] = array('title' => 'Avoid Captcha',
+    $items['admin/config/content/avoid-captcha'] = array('title' => 'Avoid Captcha',
         'description' => 'Manage which forms should be protected with Avoid Captcha.',
         'page callback' => 'drupal_get_form', 'page arguments' => array('avoid_captcha_settings'),
         'access arguments' => array('administer avoid captcha'), 'type' =>
         MENU_NORMAL_ITEM, 'file' => 'avoid_captcha.admin.inc', );
     return $items;
 }
+
 /**
  * For admin submit function
  */
@@ -81,6 +81,16 @@ function avoid_captcha_admin_submit($form, &$form_state)
     variable_set('avoid_captcha_form_ids', array_filter($form_state['values']['protect_forms']));
 
 }
+/**
+ * validation for the admin form
+ */
+function avoid_captcha_admin_validate($form, &$form_state){
+    $time = $form_state['values']['avoid_captcha_time_out'];
+    if (!ctype_digit ($time)) {
+        form_set_error('avoid_captcha_time_out', 'Please use a 1 or 2 digit value for Timeout');
+}
+}
+
 /**
  * Implement hook_permission
  */
