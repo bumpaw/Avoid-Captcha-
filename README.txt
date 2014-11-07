@@ -7,3 +7,4 @@ Adding this line with vim just to have a commit and push.
 Here with have something about client.html for the client branch.
 
 Adding: Servrer branch documentation here.
+11/07/2014 Problems with using ssh key.
